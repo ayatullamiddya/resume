@@ -1,0 +1,302 @@
+Byte Size Session's:
+--------------------
+1. Spring Boot Serverless deployment on AWS Lambda with SAM
+2. Spring Boot Serverless deployment on AWS Lambda and Infra Automation with SAM CLI
+3. Spring Boot Serverless deployment on AWS Lambda with SAM using AWS Code Pipeline
+4. Containerized SpringBoot Serverless deployment on AWS Lambda using ECR
+5. Spring Boot Serverless deployment on AWS Lambda with DynamoDB
+...
+.........
+.............
+
+Session Agenda:
+---------------
+•	Understanding Serverless Paradigm 
+•	Understanding Nanoservices and Hybrid Architecture
+•	AWS Lambda and its event driven nature
+•	API Gateway to Trigger AWS Lambda
+•   Microservice Architecture Introduction and Spring Boot
+•   Demo Implementation,Walkthrough and Run locally.
+	CI CD Pipeline
+•   Deployment to AWS using Code Commit, Code Build and Code Pipeline
+•   Code Commit and Push the Code from Local Machine to Code Commit repo
+•   Code Build, buildspec.yml file, IAM policies update for Code Build to execute lambda.
+•   Code Pipeline to stich code commit and Code Build 
+
+What is Serverless Paradigm?
+----------------------------
+[Refer: https://en.wikipedia.org/wiki/Serverless_computing]
+Serverless computing is a cloud computing execution model in which the cloud provider allocates 
+machine resources on demand, taking care of the servers on behalf of their customers. 
+Serverless computing does not hold resources in volatile memory; computing is rather done in short 
+bursts with the results persisted to storage. When an app is not in use, 
+there are no computing resources allocated to the app. Pricing is based on the actual number 
+of resources consumed by an application. 
+
+With the help of serverless architecture, an organization does not need to invest in or maintain 
+physical hardware. Instead, you rely on a trusted third-party to manage the maintenance of the 
+physical infrastructure, including the server, network, storage, etc.
+This approach lets your organization develop applications without needing to manage the underlying 
+infrastructure. 
+
+Popular third-party serverless platforms include:
+•	AWS "Lambda" [InScope]]
+•	Microsoft "Azure Functions"
+•	Google Cloud "Platform Functions"
+[Refer: https://www.bmc.com/blogs/microservices-vs-serverless/]
+
+Nanoservices:
+-------------
+Nanoservices are considered smaller siblings of microservices. Nanoservices are designed to 
+perform a single function, whose output is exposed through a specific API endpoint (command). 
+When working with nanoservices, you can write your business logic in a function and encapsulate 
+it as a serverless function so it can be reused.
+[Note: One function or set of functions can be wrapped. But Nano services recommend one function]
+Refer the diagram given below for comparison between different architectures.
+
+Hybrid Architecture:
+--------------------
+Rather than to choose between microservices and nanoservices architectures, a hybrid approach 
+should be taken. If your application can work with a microservices architecture, it can work with 
+nanoservices as well.
+Use nanoservices when it is required to use serverless architectures. If your application has a 
+lot of functionality, you might want to split the functionality into several nanoservices for 
+granularity. For all other purposes, you can use microservices.
+There isn't any reason why combination of these architectural styles can’t be use in the same 
+application. 
+This would help you eliminate the downsides of each while at the same time designing a 
+high-performance, robust, and scalable architecture.
+It means even a Spring boot based microservice application with all the CRUD operations can 
+also be deployed on the serverless architecture and can be called as a Hybrid model.
+[Refer: https://techbeacon.com/app-dev-testing/nanoservices-where-they-fit-where-they-dont]
+
+Technology stack for current demo: Spring Boot, AWS Lambda, API Gateway to trigger.
+
+AWS Lambda and its event driven nature:
+----------------------------------------
+AWS Lambda is a serverless compute service that lets you run code without provisioning or 
+managing servers, creating workload-aware cluster scaling logic, maintaining event integrations,
+or managing runtimes. 
+With Lambda, you can run code for virtually any type of application or backend service - all with 
+zero administration. 
+Just upload your code as a ZIP file or container image, and Lambda automatically and precisely 
+allocates compute execution power and runs your code based on the incoming request or event, 
+for any scale of traffic.
+You can set up your code to automatically trigger from over 200 AWS services and SaaS applications
+or call it directly from any web or mobile app. 
+You can write Lambda functions in your favorite language (Node.js, Python, Go, Java, and more) and 
+use both serverless and container tools, such as AWS SAM or Docker CLI, to build, test, and deploy 
+your functions.
+[Refer: https://aws.amazon.com/lambda/]
+
+Lambda can be executed as triggers or in response the http.
+----------------------------------------------------------- 
+As a trigger, it can be used as an event-driven compute service where AWS Lambda runs your code 
+in response to events, and these events could be changes to data in an Amazon S3 bucket or a 
+DynamoDB table, etc
+As a response to http, it can be used as a compute service to run code in response to HTTP 
+requests using """Amazon's API GatewayAPI"""
+
+
+API Gateway to Trigger AWS Lambda
+----------------------------------
+API Gateway provides tools for creating and documenting web APIs that route HTTP requests to 
+Lambda functions.
+API Gateway APIs are comprised of stages, resources, methods, and integrations. 
+The stage and resource determine the path of the endpoint:
+API path format:
+•	/prod/ – The prod stage and root resource
+•	/prod/user – The prod stage and user resource
+•	/dev/{proxy+} – Any route in the dev stage
+[Note: Amazon API Gateway invokes your function synchronously with an event that contains a 
+JSON representation of the HTTP request]
+[Refer: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway.html]
+
+Permissions:
+-------------
+Amazon API Gateway is one service and Lambda is another service. In order of Amazon API Gateway to
+invoke the AWS Lambda IAM role/resource policies are needed.
+Amazon API Gateway gets permission to invoke your function from the function's resource-based 
+policy. 
+You can grant invoke permission to an entire API in the Gateway, or grant limited access to a 
+stage, resource, or method.
+When you add an API to your function by using the Lambda console or using the API Gateway console 
+or in an AWS SAM template then the function's resource-based policy is updated automatically.
+[Refer: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway.html#apigateway-permissions]
+
+Demo Implementation:
+--------------------
+1.Use the Link https://github.com/awslabs/aws-serverless-java-container/wiki/Quick-start---Spring-Boot2
+to create a new serverless Spring Boot 2 application using Maven archetype
+Command : 
+mvn archetype:generate -DgroupId=com.accenture.lkm -DartifactId=10007-Demo-AWS-Lambda-With-SAM -Dversion=1.0-SNAPSHOT -DarchetypeGroupId=com.amazonaws.serverless.archetypes -DarchetypeArtifactId=aws-serverless-springboot2-archetype -DarchetypeVersion=1.9.1
+
+
+mvn archetype:generate -DgroupId=com.accenture.ltt -DartifactId=10003-Session3 -Dversion=1.0-SNAPSHOT -DarchetypeGroupId=com.amazonaws.serverless.archetypes -DarchetypeArtifactId=aws-serverless-springboot3-archetype -DarchetypeVersion=2.0.1
+
+2.Import it as a Maven Project to Eclipse
+Modify the Code: bean,dao,controller,test class
+Run the Junit Test
+Run the clean package and build the ZIP file
+
+3.Change the Java Version and Code URI in template.yml
+
+4.To test locally use command : sudo sam local start-api
+
+Deployment to AWS using Code Commit, Code Build and Code Pipeline
+-----------------------------------------------------------------
+This is an approach to deploy serverless application to AWS cloud using CI and CD
+
+Code Commit and Push the Code from Local Machine to Code Commit repo
+---------------------------------------------------------------------
+https://aws.amazon.com/codecommit/
+Create a Code Commit repo
+Use the below commands to push the code from local machine to code commit repo	
+
+git init
+git add .
+git commit -m "c1"
+git remote add origin  <<code commit repo http link>>
+git push --set-upstream origin master //for first time use ""git push"" directly from next time
+
+Note: To make a git authentication with AWS code commit repo we need 
+	"HTTPS Git credentials for AWS CodeCommit" you can reterive the same from 
+	IAM user
+
+Code Build
+----------
+https://aws.amazon.com/codebuild/
+https://docs.AWS.amazon.com/codebuild/latest/userguide/build-spec-ref.html
+https://docs.aws.amazon.com/codebuild/latest/userguide/runtime-versions.html
+A buildspec is a collection of build commands and related settings, in YAML format, that CodeBuild
+uses to run a build. 
+You can include a buildspec as part of the source code or you can define a buildspec when you 
+create a build project.
+buildspec.yml should be created at the root level of the project
+
+Refer the buildspec.yml file in the project
+-------------------------------------------
+	version: 0.2
+
+	phases:
+	  install:
+		runtime-versions:
+		  java: corretto17
+	  build:
+		commands:
+		  - echo Build started on `date`
+		  - mvn test 
+	  post_build:
+		commands:
+		  - echo Build completed on `date`
+		  - mvn clean package
+		  - aws cloudformation package --template-file template.yml --output-template-file output-template.yml --s3-bucket jas-909
+		  - aws cloudformation deploy --template-file output-template.yml --stack-name JASAPI --capabilities CAPABILITY_IAM
+
+Command description:
+In the install phase, it is mentioned to install java on the provisioned Code build server. 
+In the build phase, it is mentioned to fire the test cases of the microservice component  
+In the post_build phase, it is mentioned to install and create the packaging/zip file of the 
+microservice component being built and deploy to cloud formation stack.
+
+1.	To Package the SAM template and  files referenced by the SAM template and upload the same to 
+S3 use the command: aws cloudformation package --template-file <<sam.yaml>> 
+--output-template-file <<output-sam.yaml>> --s3-bucket <<mybucket>>
+[Note: S3 bucket name should be unique ]
+[Refer: https://docs.aws.amazon.com/cli/latest/reference/cloudformation/package.html] 
+The command returns a copy of your template, replacing references to local artifacts with the S3 
+location where the command uploaded the artifacts.
+
+--template-file (string) The path where your AWS CloudFormation template is located.
+--output-template-file (string) The path to the file where the command writes the output
+AWS CloudFormation template. If you don't specify a path, the command writes the template to the 
+standard output.
+--s3-bucket (string) The name of the S3 bucket where this command uploads the artifacts that are 
+referenced in your template.
+
+2.	To Deploy a Cloudformation stack from the SAM template. It is must to provide the 
+--capabilities so that deployment should succeed. It will help SAM in creating IAM roles and 
+policies needed to allow the API Gateway to execute the Lambda function. 
+Command use to deploy is:
+aws cloudformation deploy --template-file <<output-sam.yaml>> --stack-name <<MSDAPI>> 
+--capabilities CAPABILITY_IAM
+
+
+SAM Understanding 
+-----------------
+https://aws.amazon.com/serverless/sam/
+https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy.html
+
+AWS Cloud Formation
+-------------------
+https://aws.amazon.com/cloudformation/
+
+
+you can use even below command :
+	cd target
+	- aws lambda update-function-code --function-name <<MyLambda>> --zip-file fileb://emp-service-demo_cicd-1.0-SNAPSHOT-lambda-package.zip
+
+create a code build aws project with below environment settings
+	Amazon Linux
+	standard
+	aws/codebuild/amazonlinux2-x86_64-standard:5.0
+	use latest image
+
+Select the Code build and update the IAM role with Policies.
+	AMAZONS3FullAccess
+	AWSLambdaBasicExecution Role
+	AWSLambda_FullAccess
+	AWSCloudFormationFull Access
+
+Code Pipeline to stich code commit and Code Build:
+---------------------------------------------------
+Create a pipeline and code commit and code build stages 
+and see the pipeline deploying application
+
+Monitoring Lambda using X-RAY:
+-----------------------------
+In order to Monitor Lambda with X-Ray, under the Configuration Tab there is Monitoring and  
+operation tools option
+On Clicking edit options are displayed:
+On enabling active tracing and saving, X-Ray enabled.
+
+[Refer: https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html
+ Refer: https://aws.amazon.com/xray/
+ Refer: https://aws.amazon.com/xray/faqs/]
+ 
+X-Ray provides an end-to-end view of requests as they travel through your application, and shows a
+map of your application’s underlying components. You can use X-Ray to analyze both applications in 
+development and in production, from simple three-tier applications to complex microservices 
+applications consisting of thousands of services.
+
+Trace data sent to X-Ray is generally available for retrieval and filtering within 30 seconds of 
+it being received by the service.
+
+To see the X-Ray traces, navigate to the moniter tab under aws Lambda and use the option View X-Ray
+traces in ServerLens
+ 
+On selecting a single trace 3 type of information is shown :
+1 Trace Map (which tells the information about the services that are spawned for single request)
+2 Segments Timeline (Tells about the time taken by each service to respond)
+3 Logs (these are normal cloud watch logs that can be seen from the Cloud watch Log stream for AWS Lambda also)
+
+
+
+
+
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+  build:
+    commands:
+      - echo Build started on `date`
+      - mvn test 
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - mvn clean package
+      - aws cloudformation package --template-file template.yml --output-template-file output-template.yml --s3-bucket jas-909
+      - aws cloudformation deploy --template-file output-template.yml --stack-name JASAPI --capabilities CAPABILITY_IAM
