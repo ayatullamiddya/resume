@@ -1,0 +1,276 @@
+Byte Size Session's:
+--------------------
+1. Spring Boot Serverless deployment on AWS Lambda with SAM
+2. Spring Boot Serverless deployment on AWS Lambda and Infra Automation with SAM CLI
+3. Spring Boot Serverless deployment on AWS Lambda with SAM using AWS Code Pipeline
+4. "Containerized" SpringBoot Serverless App deployment on AWS Lambda using "ECR"[Elastic Container Registry]
+
+Agenda:
+
+1. Containerization
+
+2. Docker to create Docker Image
+
+3. Push Image to ECR
+
+4. AWS Lambda which will use ECR Image to deploy application
+
+5. API Gateway to Trigger AWS Lambda
+
+
+5. Spring Boot Serverless deployment on AWS Lambda with DynamoDB
+
+Session Agenda:
+---------------
+•	Microservice Architecture Introduction and Spring Boot
+•	Understanding Serverless Paradigm 
+•	Understanding Nanoservices and Hybrid Architecture
+•	AWS Lambda and its event driven nature and API Gateway to Trigger AWS Lambda
+•	What is Containerization ?
+•   Demo Implementation and Walkthrough
+•	Use Docker and Containerize your Microservice component
+•   Use docker commands and build a docker image
+•   Deployment to AWS using ECR, AWS Lambda and API Gateway
+•   Testing it locally using Lambda Runtime Emulator[Lambda RIE]
+
+What is Serverless Paradigm?
+----------------------------
+[Refer: https://en.wikipedia.org/wiki/Serverless_computing]
+Serverless computing is a cloud computing execution model in which the cloud provider allocates 
+machine resources on demand, taking care of the servers on behalf of their customers. 
+Serverless computing does not hold resources in volatile memory; computing is rather done in short 
+bursts with the results persisted to storage. When an app is not in use, 
+there are no computing resources allocated to the app. Pricing is based on the actual number 
+of resources consumed by an application. 
+
+With the help of serverless architecture, an organization does not need to invest in or maintain 
+physical hardware. Instead, you rely on a trusted third-party to manage the maintenance of the 
+physical infrastructure, including the server, network, storage, etc.
+This approach lets your organization develop applications without needing to manage the underlying 
+infrastructure. 
+
+Popular third-party serverless platforms include:
+•	AWS Lambda
+•	Microsoft Azure Functions
+•	Google Cloud Platform Functions
+[Refer: https://www.bmc.com/blogs/microservices-vs-serverless/]
+
+Nanoservices:
+-------------
+Nanoservices are considered smaller siblings of microservices. Nanoservices are designed to 
+perform a single function, whose output is exposed through a specific API endpoint (command). 
+When working with nanoservices, you can write your business logic in a function and encapsulate 
+it as a serverless function so it can be reused.
+[Note: One function or set of functions can be wrapped. But Nano services recommend one function]
+Refer the diagram given below for comparison between different architectures.
+
+Hybrid Architecture:
+--------------------
+Rather than to choose between microservices and nanoservices architectures, a hybrid approach 
+should be taken. If your application can work with a microservices architecture, it can work with 
+nanoservices as well.
+Use nanoservices when it is required to use serverless architectures. If your application has a 
+lot of functionality, you might want to split the functionality into several nanoservices for 
+granularity. For all other purposes, you can use microservices.
+There isn't any reason why combination of these architectural styles can’t be use in the same 
+application. 
+This would help you eliminate the downsides of each while at the same time designing a 
+high-performance, robust, and scalable architecture.
+It means even a Spring boot based microservice application with all the CRUD operations can 
+also be deployed on the serverless architecture and can be called as a Hybrid model.
+[Refer: https://techbeacon.com/app-dev-testing/nanoservices-where-they-fit-where-they-dont]
+
+Technology stack for current demo: Spring Boot, AWS Lambda, API Gateway to trigger.
+
+AWS Lambda and its event driven nature:
+---------------------------------------
+AWS Lambda is a serverless compute service that lets you run code without provisioning or 
+managing servers, creating workload-aware cluster scaling logic, maintaining event integrations,
+or managing runtimes. 
+With Lambda, you can run code for virtually any type of application or backend service - all with 
+zero administration. 
+Just upload your code as a ZIP file or container image, and Lambda automatically and precisely 
+allocates compute execution power and runs your code based on the incoming request or event, 
+for any scale of traffic.
+You can set up your code to automatically trigger from over 200 AWS services and SaaS applications
+or call it directly from any web or mobile app. 
+You can write Lambda functions in your favorite language (Node.js, Python, Go, Java, and more) and 
+use both serverless and container tools, such as AWS SAM or Docker CLI, to build, test, and deploy 
+your functions.
+[Refer: https://aws.amazon.com/lambda/]
+
+Lambda can be executed as triggers or in response the proxy http.
+---------------------------------------------------------------- 
+As a trigger, it can be used as an """event-driven""" compute service where AWS Lambda runs your code 
+in response to events, and these events could be changes to data in an Amazon S3 bucket or a 
+DynamoDB table, etc
+As a response to http, it can be used as a compute service to run code in response to HTTP 
+requests using """Amazon's API GatewayAPI"""[In current session]
+
+
+API Gateway to Trigger AWS Lambda
+----------------------------------
+API Gateway provides tools for creating and documenting web APIs that route HTTP requests to 
+Lambda functions.
+API Gateway APIs are comprised of stages, resources, methods, and integrations. 
+The stage and resource determine the path of the endpoint:
+API path format:
+•	/prod/ – The prod stage and root resource
+•	/prod/user – The prod stage and user resource
+•	/dev/{proxy+} – Any route in the dev stage
+[Note: Amazon API Gateway invokes your function synchronously with an event that contains a 
+JSON representation of the HTTP request]
+[Refer: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway.html]
+
+Permissions:
+-------------
+Amazon API Gateway is one service and Lambda is another service. In order of Amazon API Gateway to
+invoke the AWS Lambda IAM role/resource policies are needed.
+Amazon API Gateway gets permission to invoke your function from the function's resource-based 
+policy. 
+You can grant invoke permission to an entire API in the Gateway, or grant limited access to a 
+stage, resource, or method.
+When you add an API to your function by using the Lambda console or using the API Gateway console 
+or in an AWS SAM template then the function's resource-based policy is updated automatically.
+[Refer: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway.html#apigateway-permissions]
+
+Demo Implementation:
+--------------------
+1.Use the Link https://github.com/aws/serverless-java-container/wiki/Quick-start---Spring-Boot3
+to create a new serverless Spring Boot 3 application using Maven archetype
+Command : 
+mvn archetype:generate -DgroupId=com.accenture.ltt -DartifactId=10004-Session4 -Dversion=1.0-SNAPSHOT -DarchetypeGroupId=com.amazonaws.serverless.archetypes -DarchetypeArtifactId=aws-serverless-springboot3-archetype -DarchetypeVersion=2.0.1
+
+2.Import it as a Maven Project to Eclipse and do below changes in pom
+
+<!--       ADD                   -->
+<dependency>
+	<groupId>com.amazonaws</groupId>
+	<artifactId>aws-lambda-java-runtime-interface-client</artifactId>
+	<version>2.3.2</version>
+</dependency>
+
+The aws-lambda-java-runtime-interface-client (RIC) is a crucial component for 
+running Java functions in AWS Lambda, particularly when we are packaging the 
+Spring Boot App as a docker container
+
+<!--        REMOVE BUILD AND ADD BELOW                  -->
+Change the POM build plugin as below:
+	<build>
+		<finalName>spring_boot_docker</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<configuration>
+					<includeScope>runtime</includeScope>
+				</configuration>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	
+	
+Dockerfile	
+-----------
+3.Observe the Dockerfile:
+# Use OpenJDK 17 Alpine as base image
+FROM openjdk:17-jdk-alpine
+
+# Copy dependencies and application jar
+COPY target/dependency/* /function/
+COPY target/spring_boot_docker.jar /function
+
+# Set working directory
+WORKDIR /function
+
+# Update entrypoint to use Java 17
+ENTRYPOINT [ "java", "-cp", "/function/*", "com.amazonaws.services.lambda.runtime.api.client.AWSLambda" ]
+
+# Command to invoke Lambda handler
+CMD ["com.accenture.ltt.StreamLambdaHandler::handleRequest"]
+
+
+Command Description:
+--------------------
+FROM is the command to pull the base images I am using java:17 alpine version
+COPY command will copy dependencies and application jar from dependency folder to function folder
+WORKDIR command will make function folder as a work directory 
+ENTRYPOINT command using java -cp we specify the classpath and point to /function folder that 
+contains both our application.jar and all dependencies. 
+We execute the AWSLambda class (part of the Runtime Interface Client) that acts as a bridge 
+between our code and AWS Lambda. 
+This AWSLambda class expects the location of our handler function as the first argument passed 
+through CMD command.
+
+Use docker commands and build a docker image:
+---------------------------------------------
+mvn clean package
+sudo docker image build -t spring_boot_docker_lambda:1.0 .   (note dont forgot . at last)
+sudo docker images
+
+Upload the image to AWS using ECR
+---------------------------------
+Create a ECR repo "jas_ecr_reg" and use the below commands
+sudo aws configure
+
+
+sudo aws ecr get-login-password --region <Region> | sudo docker login --username AWS --password-stdin <<ECR Registry uri>
+sudo docker tag spring_boot_docker_lambda:1.0 <<ecr registry uri>./<<ecr_repo>>:spring_boot_docker_lambda
+sudo docker push <<ecr registry uri>./<<ecr repo>>:spring_boot_docker_lambda
+
+
+
+AWS Lambda
+-----------
+Create an AWS Lambda function choosing the image from ECR registry
+create a function and test the function in lambda
+
+API Gateway
+-----------
+Create a API gateway and a proxy resource 
+Test through the API gateway 
+Deploy the APP
+
+What is DOCKER?
+https://opensource.com/resources/what-docker
+
+
+What is AWS ECR
+https://aws.amazon.com/ecr/
+
+References: 
+-----------
+Word doc shared 
+
+
+Content-Type: application/json
+
+Containerization is a software deployment process that bundles an application's code with all the files, libraries, frameworks, and dependencies it needs to run into a single, lightweight executable unit called a container. 
+Amazon Web Services (AWS)
+Amazon Web Services (AWS)
+ +1
+Think of it as a "bubble" that isolates the software from the underlying infrastructure, ensuring it behaves identically regardless of where it is deployed—whether on a developer's laptop, a testing server, or the cloud. 
+Red Hat
+Red Hat
+ +1
+ 
+Why Containerize a Spring Boot App?
+While Spring Boot applications are already "standalone" because they embed a web server (like Tomcat), containerizing them with tools like Docker provides several critical advantages: 
+Docker
+Docker
+Eliminates "Works on My Machine" Issues: It bundles the exact Java Runtime Environment (JRE) version and configuration your app needs. This prevents bugs caused by differences in OS or Java versions between development and production.
+Rapid Scalability: Containers are lightweight and start in seconds. This allows you to quickly spin up multiple instances of your Spring Boot microservices to handle traffic spikes using orchestrators like Kubernetes.
+Environment Isolation: You can run multiple Spring Boot apps on the same server without worrying about port conflicts or library version clashes, as each container operates in its own isolated user space.
+Simplified CI/CD: You build a container image once and promote that same immutable artifact through testing and staging all the way to production, making deployments predictable and reliable.
+Resource Efficiency: Unlike Virtual Machines (VMs), containers share the host's operating system kernel rather than bundling a full OS. This makes them much smaller and allows more apps to run on the same hardware.
+Cloud-Native Readiness: Modern cloud platforms (AWS, Google Cloud, Azure) are designed to run containers. Containerizing your app makes it easier to migrate to the cloud and use managed services like Google Kubernetes Engine (GKE). 
